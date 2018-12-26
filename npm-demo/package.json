@@ -1,0 +1,15 @@
+{
+  "name": "npm-demo",
+  "version": "1.0.0",
+  "description": "this is just first trial of node package manager of package.json",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "\u0016https://gitlab.com/hamidhmz/node.git"
+  },
+  "author": "hamid-nasrollahy",
+  "license": "ISC"
+}
