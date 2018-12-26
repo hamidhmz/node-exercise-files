@@ -11,5 +11,9 @@
     "url": "\u0016https://gitlab.com/hamidhmz/node.git"
   },
   "author": "hamid-nasrollahy",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^5.4.1",
+    "underscore": "^1.9.1"
+  }
 }
