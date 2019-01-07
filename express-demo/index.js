@@ -1,99 +1,47 @@
+const startupDebugger = require('debug')('app:startup');//for see this debugger set export DEBUG=app:startup  OR DEBUG=app:startup,app:db OR DEBUG=*
+const dbDebugger = require('debug')('app:db');//for see this debugger set export DEBUG=app:db OR DEBUG=app:startup,app:db OR DEBUG=*
+const config = require("config");
+const morgan = require("morgan");
+const helmet = require("helmet");
 const Joi = require("joi");
 const express = require('express');
+const logger = require("./middlewares/loggerMiddleware");
+const router = require("./routes/web");
 const app = express();
 
-app.use(express.json());
+app.set("view engine", "pug");
+app.set("views", "./views");//defult path
 
-let movies = [
-    {id:1,name:"leopard"},
-    {id:2,name:"legend"},
-    {id:3,name:"lock"}
-];
-app.get('/', (req,res) => {
-    res.send(JSON.stringify('hello world'));
-});
-app.get('/api/courses',(req,res)=>{
-    res.send(JSON.stringify([1,2,3]));
-});
-app.get("/api/courses/:id",(req,res)=>{
-    res.send(JSON.stringify(req.params));
-});
-app.get("/api/courses/:id",(req,res)=>{
-    res.send(JSON.stringify(req.params.id));
-});
-app.get("/api/courses/:year/:month",(req,res)=>{
-    res.send("year: "+JSON.stringify(req.params.year)+" month: "+JSON.stringify(req.params.month));
-});
-app.get("/api/users",(req,res)=>{
-    res.send(req.query);//for queryString parameter
-});
-app.get("/api/movies",(req,res)=>{
-    res.send(movies);
-});
-app.get("/api/movie/:id",(req,res)=>{
-    let movie = movies.find(c => c.id === parseInt(req.params.id));
-    if(!movie){
-        res.status(404).send("the movie with the given ID was not available");
-    }else{
-        res.send(movie);
-    }
-});
-app.post("/api/movies",(req,res)=>{
-    let schema = {
-        name:Joi.string().min(3).required()
-    };
-    let result = Joi.validate(req.body, schema);
-    console.log(result);
-    if (result.error){
-        res.status(400).send(result.error.details[0].message);
-        return;
-    }
-    // if(!req.body.name || req.body.name.length < 3){//data validation
-    //     //400 bad request
-    //     res.status(400).send("Name is required and should be minimum 3 character");
-    //     return;
-    // }
-    let movie = {
-        id:movies.length + 1 , 
-        name:req.body.name
-    };
-    movies.push(movie);
-    res.send(movie);
-});
-app.put("/api/movies/:id",(req,res)=>{
-    let movie = movies.find(c => c.id === parseInt(req.params.id));
-    if(!movie){
-        res.status(404).send("the movie with the given ID was not available");
-    }else{
-        movie.name = req.body.name;
-        
-        res.send(movie);
-    }
-    let { error } = validateCourse(req.body);
-    if (error){
-        res.status(400).send(error.details[0].message);
-        return;
-    }
-    
-});
-app.delete("/api/movies/:id",(req,res)=>{
-    let movie = movies.find(c => c.id === parseInt(req.params.id));
-    if(!movie){
-        res.status(404).send("the movie with the given ID was not available");
-    }else{
-        let movieIndex = movies.indexOf(movie);
-        movies.splice(movieIndex,1);
-        
-        res.send(movie);
-    }
-});
-function validateCourse(movie){
-    let schema = {
-        name:Joi.string().min(3).required()
-    };
-    let result = Joi.validate(movie, schema);
-    return result;
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`app: ${app.get("env")}`);
+console.log("Application Name: "+ config.get("name"));
+console.log("Mail Server: "+ config.get("mail.host"));
+console.log("Mail password: "+ config.get("mail.password"));//seted as environ variable as app_password and declear in custom-environment-variables.json and can use every where 
+
+app.use(express.json());
+app.use(express.urlencoded({extended:true}));
+app.use(express.static("public"));
+app.use(helmet());
+if (app.get("env") === "development"){
+    app.use(morgan("tiny"));
+    startupDebugger("morgan enabled...");//for see this debugger set export DEBUG=app:startup   OR DEBUG=app:startup,app:db OR DEBUG=*
 }
+
+//db work...
+dbDebugger("connected to the database...");//for see this debugger set export DEBUG=app:db  OR DEBUG=app:startup,app:db OR DEBUG=*
+
+app.use("/", router);
+
+app.use(logger);
+//costume middleware
+app.use(function(req,res,next){
+    console.log("legged in ...");
+    next();
+});
+
+
+
+
 // app.post(); 
 // app.put();
 // app.delete();
