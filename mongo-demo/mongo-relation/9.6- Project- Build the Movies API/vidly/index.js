@@ -1,24 +1,27 @@
-const Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);
+const {createLogger,format,transports } = require("winston");
+const { combine, timestamp, label, prettyPrint } = format;
 const mongoose = require('mongoose');
-const genres = require('./routes/genres');
-const customers = require('./routes/customers');
-const movies = require('./routes/movies');
-const rentals = require('./routes/rentals');
-const users = require('./routes/users');
 const express = require('express');
+const logger = createLogger({
+  format: combine(
+    timestamp(),
+    prettyPrint()
+  ),
+  transports: [
+      new transports.Console(),
+      new transports.File({ filename: 'logFile.log' })
+  ]
+});
 const app = express();
+require("./startup/logging");
+require("./startup/routes")(app);
+require("./startup/db")(mongoose);
+require("./startup/config")();
+require("./startup/validation")();
+// for log of beyond from express you we must do this
 
-mongoose.connect('mongodb://localhost/vidly')
-  .then(() => console.log('Connected to MongoDB...'))
-  .catch(err => console.error('Could not connect to MongoDB...'));
 
-app.use(express.json());
-app.use('/api/users', users);
-app.use('/api/genres', genres);
-app.use('/api/customers', customers);
-app.use('/api/movies', movies);
-app.use('/api/rentals', rentals);
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Listening on port ${port}...`));
+app.listen(port, () => logger.info(`Listening on port ${port}...`));
+logger.info('hello', { message: 'world' });
