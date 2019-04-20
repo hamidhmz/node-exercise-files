@@ -18,10 +18,13 @@ require("./startup/routes")(app);
 require("./startup/db")(mongoose);
 require("./startup/config")();
 require("./startup/validation")();
+require("./startup/prod")(app);
 // for log of beyond from express you we must do this
 
 
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => logger.info(`Listening on port ${port}...`));
-logger.info('hello', { message: 'world' });
+const server = app.listen(port, () => logger.info(`Listening on port ${port}...`));
+// logger.info('hello', { message: 'world' });
+
+module.exports = server;
